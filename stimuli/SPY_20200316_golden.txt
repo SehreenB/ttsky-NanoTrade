@@ -1,0 +1,9 @@
+// NanoTrade Golden Reference
+// Ticker: SPY  Date: 2020-03-16  Source: synthetic
+// Expected alerts: FLASH_CRASH, VOLATILITY, VOLUME_SURGE
+// Total bars: 390
+//
+// Format: EXPECTED_ALERT_TYPE  (chip should fire at least once)
+EXPECT FLASH_CRASH
+EXPECT VOLATILITY
+EXPECT VOLUME_SURGE

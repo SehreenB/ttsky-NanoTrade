@@ -1,0 +1,16 @@
+NanoTrade Stimulus Info
+=======================
+Ticker  : GME
+Date    : 2021-01-28
+Source  : synthetic
+Bars    : 390
+Cycles  : 6272
+
+Price range: $104.85 — $491.51
+Volume range: 785,271 — 13,065,032
+
+Expected alerts:
+  ✅ FLASH_CRASH
+  ✅ VOLUME_SURGE
+  ✅ PRICE_SPIKE
+  ✅ ORDER_IMBALANCE

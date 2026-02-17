@@ -1,0 +1,13 @@
+NanoTrade Stimulus Info
+=======================
+Ticker  : GLD
+Date    : 2019-06-04
+Source  : synthetic
+Bars    : 390
+Cycles  : 6272
+
+Price range: $134.24 — $135.97
+Volume range: 7,038,891 — 9,317,704
+
+Expected alerts:
+  ✅ NONE (this is a quiet baseline test)

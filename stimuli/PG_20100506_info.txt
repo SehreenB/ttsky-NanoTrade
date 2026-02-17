@@ -1,0 +1,14 @@
+NanoTrade Stimulus Info
+=======================
+Ticker  : PG
+Date    : 2010-05-06
+Source  : synthetic
+Bars    : 390
+Cycles  : 6272
+
+Price range: $1.00 — $60.54
+Volume range: 141,178 — 2,367,494
+
+Expected alerts:
+  ✅ FLASH_CRASH
+  ✅ PRICE_SPIKE

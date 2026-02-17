@@ -1,0 +1,10 @@
+// NanoTrade Golden Reference
+// Ticker: GME  Date: 2021-01-28  Source: synthetic
+// Expected alerts: FLASH_CRASH, VOLUME_SURGE, PRICE_SPIKE, ORDER_IMBALANCE
+// Total bars: 390
+//
+// Format: EXPECTED_ALERT_TYPE  (chip should fire at least once)
+EXPECT FLASH_CRASH
+EXPECT VOLUME_SURGE
+EXPECT PRICE_SPIKE
+EXPECT ORDER_IMBALANCE
