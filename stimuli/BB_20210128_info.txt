@@ -1,0 +1,14 @@
+NanoTrade Stimulus Info
+=======================
+Ticker  : BB
+Date    : 2021-01-28
+Source  : synthetic
+Bars    : 390
+Cycles  : 6272
+
+Price range: $10.31 — $19.37
+Volume range: 324,250 — 1,521,961
+
+Expected alerts:
+  ✅ PRICE_SPIKE
+  ✅ VOLUME_SURGE

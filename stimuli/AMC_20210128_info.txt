@@ -1,0 +1,15 @@
+NanoTrade Stimulus Info
+=======================
+Ticker  : AMC
+Date    : 2021-01-28
+Source  : synthetic
+Bars    : 390
+Cycles  : 6272
+
+Price range: $4.06 — $16.88
+Volume range: 1,228,608 — 10,499,577
+
+Expected alerts:
+  ✅ VOLUME_SURGE
+  ✅ PRICE_SPIKE
+  ✅ ORDER_IMBALANCE

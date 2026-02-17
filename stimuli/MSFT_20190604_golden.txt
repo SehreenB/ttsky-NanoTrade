@@ -1,0 +1,7 @@
+// NanoTrade Golden Reference
+// Ticker: MSFT  Date: 2019-06-04  Source: synthetic
+// Expected alerts: NONE
+// Total bars: 390
+//
+// Format: EXPECTED_ALERT_TYPE  (chip should fire at least once)
+EXPECT NONE

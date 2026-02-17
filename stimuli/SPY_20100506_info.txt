@@ -1,0 +1,15 @@
+NanoTrade Stimulus Info
+=======================
+Ticker  : SPY
+Date    : 2010-05-06
+Source  : synthetic
+Bars    : 390
+Cycles  : 6272
+
+Price range: $108.00 — $120.86
+Volume range: 2,490,602 — 17,621,264
+
+Expected alerts:
+  ✅ FLASH_CRASH
+  ✅ VOLATILITY
+  ✅ VOLUME_SURGE

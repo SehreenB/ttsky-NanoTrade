@@ -1,0 +1,15 @@
+NanoTrade Stimulus Info
+=======================
+Ticker  : JETS
+Date    : 2020-03-16
+Source  : synthetic
+Bars    : 390
+Cycles  : 6272
+
+Price range: $13.70 — $23.20
+Volume range: 1,573,003 — 12,008,327
+
+Expected alerts:
+  ✅ FLASH_CRASH
+  ✅ VOLUME_SURGE
+  ✅ ORDER_IMBALANCE

@@ -1,0 +1,14 @@
+NanoTrade Stimulus Info
+=======================
+Ticker  : AAPL
+Date    : 2010-05-06
+Source  : synthetic
+Bars    : 390
+Cycles  : 6272
+
+Price range: $247.77 — $273.86
+Volume range: 3,381,490 — 17,141,706
+
+Expected alerts:
+  ✅ FLASH_CRASH
+  ✅ VOLUME_SURGE
