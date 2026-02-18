@@ -38,6 +38,9 @@ module anomaly_detector (
     input  wire [11:0] volume_data,
     input  wire        match_valid,
     input  wire [7:0]  match_price,
+    // Live threshold inputs from config register (set via UI at demo time)
+    input  wire [11:0] spike_thresh,   // default 12'd20
+    input  wire [11:0] flash_thresh,   // default 12'd40
     output wire        alert_any,
     output wire [2:0]  alert_priority,
     output wire [2:0]  alert_type,
@@ -164,18 +167,17 @@ module anomaly_detector (
     // COMBINATIONAL PARALLEL DETECTORS (all evaluate same cycle)
     // ---------------------------------------------------------------
 
-    // Thresholds (tunable for demo)
-    localparam SPIKE_THRESH    = 12'd20;   // abs price change > 20
-    localparam VOL_SURGE_MULT  = 2;        // current > 2x average
-    localparam VELOCITY_THRESH = 6'd30;    // >30 matches per window
-    localparam VOL_DRY_DIV     = 4;        // < avg/4
-    localparam FLASH_THRESH    = 12'd40;   // price drop > 40 from avg
+    // Thresholds — driven by config register via top-level (tunable live at demo)
+    // spike_thresh and flash_thresh are inputs; others remain fixed
+    localparam VOL_SURGE_MULT  = 2;
+    localparam VELOCITY_THRESH = 6'd30;
+    localparam VOL_DRY_DIV     = 4;
 
     // [0] Price Spike
     wire [11:0] price_delta = (current_price > prev_price) ?
                                current_price - prev_price :
                                prev_price - current_price;
-    wire det_spike = (price_delta > SPIKE_THRESH);
+    wire det_spike = (price_delta > spike_thresh);
 
     // [1] Volume Surge
     wire [12:0] vol_surge_thresh = {1'b0, vol_avg} << VOL_SURGE_MULT;
@@ -209,7 +211,7 @@ module anomaly_detector (
     // [7] Flash Crash - CRITICAL: price dropped >40 from established average
     wire [11:0] price_drop = (price_avg > current_price) ?
                               price_avg - current_price : 12'd0;
-    wire det_flash = (price_avg > 12'd20) && (price_drop > FLASH_THRESH);
+    wire det_flash = (price_avg > 12'd20) && (price_drop > flash_thresh);
 
     // Bundle all detector outputs
     assign alert_bitmap = {det_flash,

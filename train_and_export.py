@@ -43,11 +43,11 @@ SEED = 42
 rng  = np.random.default_rng(SEED)
 
 N_FEATURES = 16
-N_HIDDEN   = 8
+N_HIDDEN   = 4
 N_CLASSES  = 6
 N_SAMPLES  = 8000   # synthetic samples
 
-OUT_DIR = os.path.join(os.path.dirname(__file__), "../src/rom")
+OUT_DIR = "/home/claude/src/rom"
 os.makedirs(OUT_DIR, exist_ok=True)
 
 # ---------------------------------------------------------------
