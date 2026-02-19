@@ -72,18 +72,20 @@ module tt_um_nanotrade #(
 
     // Threshold tables: [preset][value]
     // SPIKE_THRESH: how many price units = a spike
+    // SUPER OPTIMIZED: Even higher thresholds for zero false positives
     wire [11:0] SPIKE_THRESH =
-        (thresh_sel == 2'b00) ? 12'd40 :
-        (thresh_sel == 2'b01) ? 12'd20 :
-        (thresh_sel == 2'b10) ? 12'd10 :
-                                12'd5;   // demo
+        (thresh_sel == 2'b00) ? 12'd120 :  // QUIET: ultra-loose (>$30 move)
+        (thresh_sel == 2'b01) ? 12'd100 :  // NORMAL: very loose (>$20 move)
+        (thresh_sel == 2'b10) ? 12'd40  :  // SENSITIVE: moderate ($10 move)
+                                12'd20;    // DEMO: tight ($5 move)
 
     // FLASH_THRESH: price drop from baseline to trigger flash crash
+    // SUPER OPTIMIZED: Must be MAJOR drop (>15% in scaled units)
     wire [11:0] FLASH_THRESH =
-        (thresh_sel == 2'b00) ? 12'd60 :
-        (thresh_sel == 2'b01) ? 12'd40 :
-        (thresh_sel == 2'b10) ? 12'd20 :
-                                12'd10;  // demo
+        (thresh_sel == 2'b00) ? 12'd180 :  // QUIET: >$45 drop needed
+        (thresh_sel == 2'b01) ? 12'd150 :  // NORMAL: >$30 drop
+        (thresh_sel == 2'b10) ? 12'd80  :  // SENSITIVE: >$20 drop
+                                12'd40;    // DEMO: >$10 drop
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n)
@@ -174,34 +176,84 @@ module tt_um_nanotrade #(
     reg [7:0] ml_conf_held;
     reg       ml_anomaly_held;
     reg [2:0] ml_prio_held;
+    reg [7:0] ml_anomaly_decay;  // auto-clears ml_anomaly after 256 cycles
+
+    // ML consecutive confirmation: require 2 consecutive anomaly windows
+    // to fire an ML alert. Single-window false positives are suppressed.
+    // ml_valid_seen: edge detector so we only process the FIRST cycle ml_valid
+    // is high (ml_valid may stay high for multiple cycles from the engine).
+    reg        ml_prev_was_anomaly;
+    reg [2:0]  ml_prev_class;
+    reg        ml_valid_seen;    // 1 if we already processed this ml_valid pulse
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
-            ml_class_held   <= 3'd0;
-            ml_conf_held    <= 8'd0;
-            ml_anomaly_held <= 1'b0;
-            ml_prio_held    <= 3'd0;
-        end else if (ml_valid) begin
-            ml_class_held   <= ml_class;
-            ml_conf_held    <= ml_confidence;
-            ml_anomaly_held <= (ml_class != 3'd0);
-            case (ml_class)
-                3'd0: ml_prio_held <= 3'd0;
-                3'd1: ml_prio_held <= 3'd3;
-                3'd2: ml_prio_held <= 3'd2;
-                3'd3: ml_prio_held <= 3'd7;
-                3'd4: ml_prio_held <= 3'd4;
-                3'd5: ml_prio_held <= 3'd5;
-                default: ml_prio_held <= 3'd0;
-            endcase
+            ml_class_held       <= 3'd0;
+            ml_conf_held        <= 8'd0;
+            ml_anomaly_held     <= 1'b0;
+            ml_prio_held        <= 3'd0;
+            ml_anomaly_decay    <= 8'd0;
+            ml_prev_was_anomaly <= 1'b0;
+            ml_prev_class       <= 3'd0;
+            ml_valid_seen       <= 1'b0;
+        end else if (ml_valid && !ml_valid_seen) begin
+            ml_valid_seen <= 1'b1;   // mark as processed — ignore subsequent cycles
+            ml_class_held <= ml_class;
+            ml_conf_held  <= ml_confidence;
+
+            if ((ml_class != 3'd0) && (ml_confidence > 8'd180)) begin
+                // Current window is anomalous
+                if (ml_prev_was_anomaly) begin
+                    // Two consecutive anomaly windows confirmed — fire alert
+                    ml_anomaly_held     <= 1'b1;
+                    ml_anomaly_decay    <= 8'd255;
+                    // FIX: clear prev immediately after firing so it needs a
+                    // fresh 2-window streak to re-trigger. Prevents lingering
+                    // confirmation from causing false positives in later windows.
+                    ml_prev_was_anomaly <= 1'b0;
+                    ml_prev_class       <= 3'd0;
+                    case (ml_class)
+                        3'd1: ml_prio_held <= 3'd3;
+                        3'd2: ml_prio_held <= 3'd2;
+                        3'd3: ml_prio_held <= 3'd7;
+                        3'd4: ml_prio_held <= 3'd4;
+                        3'd5: ml_prio_held <= 3'd5;
+                        default: ml_prio_held <= 3'd0;
+                    endcase
+                end else begin
+                    // First anomaly window — record it, don't alert yet
+                    ml_prev_was_anomaly <= 1'b1;
+                    ml_prev_class       <= ml_class;
+                end
+            end else begin
+                // Normal or low-confidence: clear alert and reset streak
+                ml_anomaly_held     <= 1'b0;
+                ml_anomaly_decay    <= 8'd0;
+                ml_prio_held        <= 3'd0;
+                ml_prev_was_anomaly <= 1'b0;
+                ml_prev_class       <= 3'd0;
+            end
+        end else begin
+            if (!ml_valid) ml_valid_seen <= 1'b0;  // reset when valid deasserts
+            // Between ML inferences: decay the held alert
+            if (ml_anomaly_decay > 8'd0)
+                ml_anomaly_decay <= ml_anomaly_decay - 8'd1;
+            else begin
+                ml_anomaly_held <= 1'b0;
+                ml_prio_held    <= 3'd0;
+            end
         end
     end
 
     wire        comb_alert    = rule_alert_any | ml_anomaly_held;
     wire [2:0]  comb_priority = (rule_alert_priority > ml_prio_held) ?
                                   rule_alert_priority : ml_prio_held;
-    wire [2:0]  comb_type     = (rule_alert_priority >= ml_prio_held) ?
-                                  rule_alert_type : ml_class_held;
+    // Only output an anomaly type when an alert is actually active
+    // Prevents ml_class_held from leaking into comb_type when alert has cleared
+    wire [2:0]  comb_type     = !comb_alert              ? 3'd0 :
+                                (rule_alert_any &&
+                                 rule_alert_priority >= ml_prio_held) ? rule_alert_type :
+                                                                         ml_class_held;
 
     // ---------------------------------------------------------------
     // UART READBACK — 115200 baud, 8N1

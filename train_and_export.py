@@ -43,9 +43,13 @@ SEED = 42
 rng  = np.random.default_rng(SEED)
 
 N_FEATURES = 16
-N_HIDDEN   = 4
+N_HIDDEN   = 8  # INCREASED from 4 for better capacity
 N_CLASSES  = 6
-N_SAMPLES  = 8000   # synthetic samples
+N_SAMPLES  = 12000   # INCREASED for better training
+
+# IMPROVED: More normal samples to reduce false positives
+N_NORMAL_SAMPLES = 6000  # 50% of dataset
+N_ANOMALY_SAMPLES_EACH = (N_SAMPLES - N_NORMAL_SAMPLES) // (N_CLASSES - 1)  # 1200 each
 
 OUT_DIR = "/home/claude/src/rom"
 os.makedirs(OUT_DIR, exist_ok=True)
@@ -127,15 +131,19 @@ def gen_quote_stuffing(n):
     X[:, 0]  = rng.normal(0, 5, n)        # price barely moves
     return X
 
-# Generate balanced dataset
-n_per_class = N_SAMPLES // N_CLASSES
+# Generate IMBALANCED dataset: 50% normal, 10% each anomaly
 generators  = [gen_normal, gen_price_spike, gen_volume_surge,
                gen_flash_crash, gen_order_imbalance, gen_quote_stuffing]
 
 X_list, y_list = [], []
-for cls, gen in enumerate(generators):
-    X_list.append(gen(n_per_class))
-    y_list.append(np.full(n_per_class, cls))
+# Generate more normal samples
+X_list.append(gen_normal(N_NORMAL_SAMPLES))
+y_list.append(np.full(N_NORMAL_SAMPLES, 0))
+
+# Generate fewer anomaly samples
+for cls in range(1, N_CLASSES):
+    X_list.append(generators[cls](N_ANOMALY_SAMPLES_EACH))
+    y_list.append(np.full(N_ANOMALY_SAMPLES_EACH, cls))
 
 X = np.clip(np.vstack(X_list), 0, 255).astype(np.float32)
 y = np.concatenate(y_list).astype(np.int32)
@@ -162,7 +170,7 @@ Xs_test  = scaler.transform(X_test)
 clf = MLPClassifier(
     hidden_layer_sizes=(N_HIDDEN,),
     activation='relu',
-    max_iter=500,
+    max_iter=1000,  # INCREASED from 500 for better convergence
     random_state=SEED,
     verbose=False,
     learning_rate_init=0.001,
