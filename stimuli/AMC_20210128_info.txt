@@ -1,0 +1,9 @@
+NanoTrade Stimulus Info
+=======================
+Ticker   : AMC
+Date     : 2021-01-28
+Desc     : AMC Entertainment - same frenzy, slightly calmer
+Source   : real
+Bars     : 14
+Cycles   : 736
+Expected : FLASH_CRASH, ORDER_IMBALANCE, TRADE_VELOCITY, PRICE_SPIKE

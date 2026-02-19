@@ -1,0 +1,9 @@
+NanoTrade Stimulus Info
+=======================
+Ticker   : PG
+Date     : 2010-05-06
+Desc     : Procter & Gamble - dropped from $60 to $0.01 momentarily
+Source   : real
+Bars     : 15
+Cycles   : 752
+Expected : FLASH_CRASH_ML, PRICE_SPIKE_ML

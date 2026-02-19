@@ -1,0 +1,9 @@
+NanoTrade Stimulus Info
+=======================
+Ticker   : ZM
+Date     : 2020-03-16
+Desc     : Zoom - went UP during COVID. Should NOT trigger Flash Crash!
+Source   : real
+Bars     : 14
+Cycles   : 736
+Expected : ORDER_IMBALANCE, PRICE_SPIKE

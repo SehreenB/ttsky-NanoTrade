@@ -1,0 +1,9 @@
+NanoTrade Stimulus Info
+=======================
+Ticker   : AAPL
+Date     : 2010-05-06
+Desc     : Apple - blue chip dragged down, tests broad impact
+Source   : real
+Bars     : 15
+Cycles   : 752
+Expected : FLASH_CRASH, ORDER_IMBALANCE, VOLUME_SURGE, PRICE_SPIKE

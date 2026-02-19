@@ -1,0 +1,9 @@
+NanoTrade Stimulus Info
+=======================
+Ticker   : ACN
+Date     : 2010-05-06
+Desc     : Accenture - traded at literally $0.01, the most extreme case
+Source   : real
+Bars     : 15
+Cycles   : 752
+Expected : FLASH_CRASH, PRICE_SPIKE

@@ -1,0 +1,9 @@
+NanoTrade Stimulus Info
+=======================
+Ticker   : KO
+Date     : 2019-06-04
+Desc     : Coca-Cola - famously boring, ultra-low volatility
+Source   : real
+Bars     : 13
+Cycles   : 720
+Expected : NONE

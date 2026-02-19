@@ -1,0 +1,9 @@
+NanoTrade Stimulus Info
+=======================
+Ticker   : JETS
+Date     : 2020-03-16
+Desc     : Airlines ETF - most devastated sector
+Source   : real
+Bars     : 14
+Cycles   : 736
+Expected : FLASH_CRASH, ORDER_IMBALANCE, TRADE_VELOCITY, VOLUME_SURGE, PRICE_SPIKE

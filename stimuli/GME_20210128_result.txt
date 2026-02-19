@@ -1,0 +1,88 @@
+WARNING: tb_nanotrade_stock.v:283: $readmemh(stimuli/GME_20210128_stimulus.memh): Not enough words in the file for the requested range [0:16383].
+
+[1m+============================================================+[0m
+[1m|     NanoTrade Stock Replay  --  IEEE UofT ASIC             |[0m
+[1m|     SKY130  50 MHz  |  2x2 TinyTapeout tiles               |[0m
+[1m+============================================================+[0m
+
+  Ticker   :              GME
+  Stimulus :                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               stimuli/GME_20210128_stimulus.memh
+  Cycles   : 736
+  Preset   : 1  (0=Quiet 1=Normal 2=Sensitive 3=Demo)
+
+VCD info: dumpfile nanotrade_stock.vcd opened for output.
+[1;32m  [cy 5    ]  Reset released -- system online[0m
+[1;36m  [cy 7    ]  Threshold preset 1 applied[0m
+[1;32m  [cy 7    ]  Replaying market data stream ...[0m
+  ---------------------------------------------------
+
+[1;35m  +----------------------------------------------------+[0m
+[1;35m  |          ML INFERENCE ENGINE RESULT                |[0m
+[1;35m  |----------------------------------------------------|[0m
+[1;35m  |  Cycle      : 264                                   |[0m
+[1;35m  |  Class      : NORMAL    (code 0)                   |[0m
+[1;35m  |  Confidence : [.            ]  (0/15)              |[0m
+[1;35m  |  Latency    : 4-cycle pipeline + 256-cy feature win|[0m
+[1;35m  +----------------------------------------------------+[0m
+
+
+[1;35m  +----------------------------------------------------+[0m
+[1;35m  |          ML INFERENCE ENGINE RESULT                |[0m
+[1;35m  |----------------------------------------------------|[0m
+[1;35m  |  Cycle      : 520                                   |[0m
+[1;35m  |  Class      : SPIKE     (code 1)                   |[0m
+[1;35m  |  Confidence : [=============]  (15/15)              |[0m
+[1;35m  |  Latency    : 4-cycle pipeline + 256-cy feature win|[0m
+[1;35m  +----------------------------------------------------+[0m
+
+[1;31m+-----------------------------------------------------+[0m
+[1;31m|  !! CRITICAL  cy=680    FLASH CRASH !!!            |[0m
+[1;31m|  Priority: [========]  SEVERITY: CRITICAL              |[0m
+[1;31m+-----------------------------------------------------+[0m
+
+[1;32m  [cy 743  ]  Stimulus done -- draining ML pipeline ...[0m
+
+[1;35m  +----------------------------------------------------+[0m
+[1;35m  |          ML INFERENCE ENGINE RESULT                |[0m
+[1;35m  |----------------------------------------------------|[0m
+[1;35m  |  Cycle      : 776                                   |[0m
+[1;35m  |  Class      : FLASH!!   (code 3)                   |[0m
+[1;35m  |  Confidence : [=============]  (15/15)              |[0m
+[1;35m  |  Latency    : 4-cycle pipeline + 256-cy feature win|[0m
+[1;35m  +----------------------------------------------------+[0m
+
+
+[1;35m  +----------------------------------------------------+[0m
+[1;35m  |          ML INFERENCE ENGINE RESULT                |[0m
+[1;35m  |----------------------------------------------------|[0m
+[1;35m  |  Cycle      : 1032                                  |[0m
+[1;35m  |  Class      : SPIKE     (code 1)                   |[0m
+[1;35m  |  Confidence : [=============]  (15/15)              |[0m
+[1;35m  |  Latency    : 4-cycle pipeline + 256-cy feature win|[0m
+[1;35m  +----------------------------------------------------+[0m
+
+
+[1m+============================================================+[0m
+[1m|                    SIMULATION SUMMARY                      |[0m
+[1m+============================================================+[0m
+[1m|  Ticker             : GME                                   |[0m
+[1m|  Total Cycles       : 1043                                  |[0m
+[1m|  Rule Alerts Fired  : 1                                     |[0m
+[1m|  Flash Crashes Det. : 1      (critical severity)            |[0m
+[1m|  ML Inferences      : 4      (256-cy window + 4-cy pipe)    |[0m
+[1m+============================================================+[0m
+
+  Rule detectors triggered:
+    [7] FLASH CRASH       *** CRITICAL ***
+    [4] Order Imbalance
+    [0] Price Spike
+
+  ML classifications:
+    [3] FLASH CRASH       *** CRITICAL ***
+    [1] PRICE SPIKE
+    [0] NORMAL
+
+  [FIRED_RULE_MASK] 10010001
+  [FIRED_ML_MASK]   00001011
+
+tb_nanotrade_stock.v:384: $finish called at 20850000 (1ps)

@@ -1,0 +1,9 @@
+NanoTrade Stimulus Info
+=======================
+Ticker   : SPY
+Date     : 2010-05-06
+Desc     : S&P 500 ETF - broad market dropped 9% in 15 minutes
+Source   : real
+Bars     : 15
+Cycles   : 752
+Expected : FLASH_CRASH_ML, ORDER_IMBALANCE, PRICE_SPIKE

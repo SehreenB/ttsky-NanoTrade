@@ -1,0 +1,9 @@
+NanoTrade Stimulus Info
+=======================
+Ticker   : GLD
+Date     : 2019-06-04
+Desc     : Gold ETF - different asset class, slow-moving
+Source   : real
+Bars     : 13
+Cycles   : 720
+Expected : NONE

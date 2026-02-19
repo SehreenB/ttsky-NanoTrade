@@ -1,0 +1,9 @@
+NanoTrade Stimulus Info
+=======================
+Ticker   : SPY
+Date     : 2020-03-16
+Desc     : S&P 500 - dropped 12% in one day
+Source   : real
+Bars     : 14
+Cycles   : 736
+Expected : FLASH_CRASH, ORDER_IMBALANCE, TRADE_VELOCITY, PRICE_SPIKE

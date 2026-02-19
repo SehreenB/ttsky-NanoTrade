@@ -1,0 +1,9 @@
+NanoTrade Stimulus Info
+=======================
+Ticker   : SPY
+Date     : 2019-06-04
+Desc     : S&P 500 - ordinary Tuesday in 2019
+Source   : real
+Bars     : 13
+Cycles   : 720
+Expected : NONE
