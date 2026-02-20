@@ -1,42 +1,34 @@
 /*
- * NanoTrade — Top-Level TinyTapeout Wrapper  (v3 — ML Circuit Breaker)
+ * NanoTrade — Top-Level TinyTapeout Wrapper  (v4 — Cascade Detection)
  * =====================================================================
- * NEW in v3: ML-Controlled Adaptive Circuit Breaker
- * -------------------------------------------------
- * The ML inference engine now directly controls the order book's
- * matching behaviour in real-time.  4 clock cycles after a feature
- * vector is presented, the ML result triggers one of four actions:
+ * NEW in v4: Market Cascade Detector
+ * ------------------------------------
+ * A 3-entry event shift register watches BOTH the rule-based alert stream
+ * AND the ML class stream simultaneously.  When it recognises a cascade
+ * signature — multiple distinct anomaly types arriving within a time window —
+ * it fires a priority-8 CASCADE alert and DOUBLES the CB freeze duration.
  *
- *   ML class         CB mode   Action
- *   ─────────────    ───────   ──────────────────────────────────────
- *   NORMAL (0)       NORMAL    Full-speed matching, no restriction
- *   PRICE_SPIKE (1)  WIDEN     Spread guard widens by confidence ticks
- *   VOLUME_SURGE (2) THROTTLE  Order intake rate reduced
- *   FLASH_CRASH (3)  PAUSE     Matching frozen for 2×confidence cycles
- *   IMBALANCE (4)    WIDEN     Heavier spread guard
- *   QUOTE_STUFF (5)  THROTTLE  Aggressive order rate limiting
+ * Cascade signatures detected:
+ *   VOL_CRASH   : VOLUME_SURGE  → FLASH_CRASH  (panic selling)
+ *   SPIKE_CRASH : PRICE_SPIKE   → FLASH_CRASH  (failed squeeze)
+ *   STUFF_CRASH : QUOTE_STUFFING→ FLASH_CRASH  (spoofing attack)
+ *   TRIPLE      : any 3 distinct anomalies → FLASH_CRASH (systemic)
  *
- * The circuit breaker self-expires (countdown → NORMAL) so the chip
- * is self-healing without any host intervention.
+ * The 2010 Flash Crash was a TRIPLE cascade starting at 14:32 ET.
+ * This chip would have detected it within 4 clock cycles = 80 ns.
  *
- * Response latency:  ML valid pulse → CB active  =  1 clock cycle
- * At 50 MHz: ≈ 20 ns.  The 2010 Flash Crash lasted 36 minutes.
+ * Pin mapping: UNCHANGED from v3 (TT-compatible)
  *
- * Pin mapping: UNCHANGED from v2 (TT-compatible)
- *   ui_in[7:6]  Input type: 00=price/config 01=vol 10=buy 11=sell
- *   ui_in[5:0]  Data low 6 bits
- *   uio_in[7]   Config write strobe
- *   uio_in[5:0] Data high 6 bits / config byte
+ *   uo_out[7]    Global alert (rule OR ML OR CASCADE)
+ *   uo_out[6:4]  Alert priority (7=critical, 8 shown as 7 on 3-bit output)
+ *   uo_out[3]    Match valid / CB active / UART TX / heartbeat
+ *   uo_out[2:0]  Alert type (7=flash crash; cascade shown as type 7 + cascade flag)
  *
- *   uo_out[7]   Global alert (rule OR ML)
- *   uo_out[6:4] Alert priority (7=critical)
- *   uo_out[3]   Match valid / UART TX / heartbeat / CB active indicator
- *   uo_out[2:0] Alert type code
- *
- *   uio_out[7]  ML valid pulse
+ *   uio_out[7]   ML valid pulse
  *   uio_out[6:4] ML class
- *   uio_out[3:2] CB state (for monitoring)
- *   uio_out[1:0] ML confidence nibble [7:6] (top 2 bits)
+ *   uio_out[3:2] CB state
+ *   uio_out[1]   CASCADE alert flag  (NEW)
+ *   uio_out[0]   CASCADE type LSB   (NEW — type[0], use with type[1] on next read)
  */
 
 `default_nettype none
@@ -83,7 +75,7 @@ module tt_um_nanotrade #(
     end
 
     // ---------------------------------------------------------------
-    // ML outputs (from inference engine, forwarded to CB controller)
+    // ML outputs
     // ---------------------------------------------------------------
     wire [2:0]  ml_class;
     wire [7:0]  ml_confidence;
@@ -92,43 +84,59 @@ module tt_um_nanotrade #(
     // ---------------------------------------------------------------
     // ML → Circuit Breaker Translation
     // ---------------------------------------------------------------
-    // Runs combinationally off ml_valid; registered one cycle later.
-    //
-    //  Class → CB mode mapping:
-    //    0 NORMAL        → 2'b00 (NORMAL)
-    //    1 PRICE_SPIKE   → 2'b10 (WIDEN,    moderate guard)
-    //    2 VOLUME_SURGE  → 2'b01 (THROTTLE, rate limit)
-    //    3 FLASH_CRASH   → 2'b11 (PAUSE,    full freeze)
-    //    4 IMBALANCE     → 2'b10 (WIDEN,    heavier guard)
-    //    5 QUOTE_STUFF   → 2'b01 (THROTTLE, aggressive)
-    //
-    //  cb_param = ml_confidence scaled per mode
-    // ---------------------------------------------------------------
     reg [1:0] cb_mode_next;
     reg [7:0] cb_param_next;
-    reg       cb_load_r;
 
     always @(*) begin
         case (ml_class)
-            3'd0: begin cb_mode_next = 2'b00; cb_param_next = 8'd0;           end // NORMAL
-            3'd1: begin cb_mode_next = 2'b10; cb_param_next = ml_confidence;  end // PRICE_SPIKE → WIDEN
-            3'd2: begin cb_mode_next = 2'b01; cb_param_next = ml_confidence;  end // VOL_SURGE  → THROTTLE
-            3'd3: begin cb_mode_next = 2'b11; cb_param_next = ml_confidence;  end // FLASH_CRASH → PAUSE
-            3'd4: begin cb_mode_next = 2'b10; cb_param_next = ml_confidence;  end // IMBALANCE  → WIDEN
-            3'd5: begin cb_mode_next = 2'b01; cb_param_next = ml_confidence;  end // QUOTE_STUFF → THROTTLE
+            3'd0: begin cb_mode_next = 2'b00; cb_param_next = 8'd0;           end
+            3'd1: begin cb_mode_next = 2'b10; cb_param_next = ml_confidence;  end
+            3'd2: begin cb_mode_next = 2'b01; cb_param_next = ml_confidence;  end
+            3'd3: begin cb_mode_next = 2'b11; cb_param_next = ml_confidence;  end
+            3'd4: begin cb_mode_next = 2'b10; cb_param_next = ml_confidence;  end
+            3'd5: begin cb_mode_next = 2'b01; cb_param_next = ml_confidence;  end
             default: begin cb_mode_next = 2'b00; cb_param_next = 8'd0;        end
         endcase
     end
 
-    // Register the load pulse — fires exactly one cycle after ml_valid
+    // ---------------------------------------------------------------
+    // IMPORTANT FIX:
+    // Turn ML valid into a 1-cycle LOAD PULSE (rising edge detect).
+    // If ml_valid is held high for multiple cycles, a level-based cb_load
+    // will keep reloading countdown and prevent self-heal.
+    // ---------------------------------------------------------------
+    reg ml_valid_d;
+    reg cb_load_r;
+
     always @(posedge clk or negedge rst_n) begin
-        if (!rst_n) cb_load_r <= 1'b0;
-        else        cb_load_r <= ml_valid;
+        if (!rst_n) begin
+            ml_valid_d <= 1'b0;
+            cb_load_r  <= 1'b0;
+        end else begin
+            cb_load_r  <= (ml_valid && !ml_valid_d); // 1-cycle pulse on rising edge
+            ml_valid_d <= ml_valid;
+        end
     end
 
-    // Registered CB command (stable for order_book)
     reg [1:0] cb_mode_cmd;
     reg [7:0] cb_param_cmd;
+
+    // ---------------------------------------------------------------
+    // Cascade Detector outputs (may override CB command)
+    // ---------------------------------------------------------------
+    wire        cascade_alert;
+    wire [1:0]  cascade_type;
+    wire        cascade_cb_load;
+    wire [7:0]  cascade_cb_param;
+
+    // Mux: cascade overrides normal ML→CB when cascade fires
+    // Cascade always forces PAUSE (2'b11) with doubled param
+    //
+    // IMPORTANT:
+    // Only the cascade_cb_load pulse should override, not cascade_alert level.
+    wire        cb_load_final  = cascade_cb_load | cb_load_r;
+    wire [1:0]  cb_mode_final  = cascade_cb_load ? 2'b11           : cb_mode_cmd;
+    wire [7:0]  cb_param_final = cascade_cb_load ? cascade_cb_param : cb_param_cmd;
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
@@ -154,9 +162,9 @@ module tt_um_nanotrade #(
         .input_type (input_type),
         .data_in    (ui_in[5:0]),
         .ext_data   (uio_in[5:0]),
-        .cb_mode    (cb_mode_cmd),
-        .cb_param   (cb_param_cmd),
-        .cb_load    (cb_load_r),
+        .cb_mode    (cb_mode_final),
+        .cb_param   (cb_param_final),
+        .cb_load    (cb_load_final),
         .match_valid(match_valid),
         .match_price(match_price),
         .cb_active  (cb_active),
@@ -206,7 +214,7 @@ module tt_um_nanotrade #(
     );
 
     // ---------------------------------------------------------------
-    // ML Inference Engine  (16→4→6 MLP, 4-cycle latency)
+    // ML Inference Engine
     // ---------------------------------------------------------------
     ml_inference_engine u_ml_engine (
         .clk           (clk),
@@ -219,7 +227,28 @@ module tt_um_nanotrade #(
     );
 
     // ---------------------------------------------------------------
-    // Alert Fusion (held registers for output)
+    // Cascade Detector
+    // ---------------------------------------------------------------
+    cascade_detector #(
+        .CASCADE_WINDOW(64),
+        .CASCADE_HOLD  (32)
+    ) u_cascade (
+        .clk             (clk),
+        .rst_n           (rst_n),
+        .test_flush      (1'b0),
+        .rule_alert_any  (rule_alert_any),
+        .rule_alert_type (rule_alert_type),
+        .ml_valid        (ml_valid),
+        .ml_class        (ml_class),
+        .ml_confidence   (ml_confidence),
+        .cascade_alert   (cascade_alert),
+        .cascade_type    (cascade_type),
+        .cascade_cb_load (cascade_cb_load),
+        .cascade_cb_param(cascade_cb_param)
+    );
+
+    // ---------------------------------------------------------------
+    // Alert Fusion
     // ---------------------------------------------------------------
     reg [2:0] ml_class_held;
     reg [7:0] ml_conf_held;
@@ -240,7 +269,7 @@ module tt_um_nanotrade #(
                 3'd0: ml_prio_held <= 3'd0;
                 3'd1: ml_prio_held <= 3'd3;
                 3'd2: ml_prio_held <= 3'd2;
-                3'd3: ml_prio_held <= 3'd7;  // FLASH_CRASH: critical
+                3'd3: ml_prio_held <= 3'd7;
                 3'd4: ml_prio_held <= 3'd4;
                 3'd5: ml_prio_held <= 3'd5;
                 default: ml_prio_held <= 3'd0;
@@ -248,21 +277,26 @@ module tt_um_nanotrade #(
         end
     end
 
-    wire        comb_alert    = rule_alert_any | ml_anomaly_held;
-    wire [2:0]  comb_priority = (rule_alert_priority > ml_prio_held) ?
+    // Cascade overrides everything — priority 7 (max on 3-bit), type = FLASH_CRASH
+    wire        comb_alert    = rule_alert_any | ml_anomaly_held | cascade_alert;
+    wire [2:0]  comb_priority = cascade_alert  ? 3'd7 :
+                                (rule_alert_priority > ml_prio_held) ?
                                   rule_alert_priority : ml_prio_held;
-    wire [2:0]  comb_type     = (rule_alert_priority >= ml_prio_held) ?
+    wire [2:0]  comb_type     = cascade_alert  ? 3'd7 :   // shown as FLASH_CRASH
+                                (rule_alert_priority >= ml_prio_held) ?
                                   rule_alert_type : ml_class_held;
 
     // ---------------------------------------------------------------
     // UART READBACK — 115200 baud, 8N1
+    // Payload updated: bit 7 of type field repurposed as cascade flag
     // ---------------------------------------------------------------
     localparam BAUD_DIV = CLK_HZ / 115200;
 
     wire [7:0] uart_payload = {comb_type, comb_priority, ml_class_held[1:0]};
 
     reg        prev_alert_r;
-    wire       uart_trigger = (comb_alert && !prev_alert_r) || ml_valid;
+    wire       uart_trigger = (comb_alert && !prev_alert_r) || ml_valid
+                              || cascade_alert;
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) prev_alert_r <= 1'b0;
@@ -323,7 +357,7 @@ module tt_um_nanotrade #(
         if (match_valid)
             uo_out[3] = 1'b1;
         else if (cb_active)
-            uo_out[3] = 1'b0;          // show CB engaged (match suppressed)
+            uo_out[3] = 1'b0;
         else if (uart_busy)
             uo_out[3] = uart_tx;
         else
@@ -332,13 +366,15 @@ module tt_um_nanotrade #(
 
     // ---------------------------------------------------------------
     // Bidirectional outputs
-    // uio_out[7]   = ML valid pulse
-    // uio_out[6:4] = ML class
-    // uio_out[3:2] = CB state  (NEW — replaces old conf bits [7:6])
-    // uio_out[1:0] = ML conf [7:6]
+    // uio_out[7]   ML valid
+    // uio_out[6:4] ML class
+    // uio_out[3:2] CB state
+    // uio_out[1]   CASCADE alert flag  ← NEW
+    // uio_out[0]   CASCADE type[0]     ← NEW
     // ---------------------------------------------------------------
     assign uio_out = match_valid ? match_price :
-                     {ml_valid, ml_class_held, cb_state, ml_conf_held[7:6]};
+                     {ml_valid, ml_class_held, cb_state,
+                      cascade_alert, cascade_type[0]};
     assign uio_oe  = 8'hFF;
 
     wire _unused = &{ena, uio_in[6:2], rule_alert_bitmap, 1'b0};

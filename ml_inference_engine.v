@@ -45,6 +45,7 @@ module ml_inference_engine (
     // Result (valid 4 cycles after feature_valid)
     output reg  [2:0]  ml_class,
     output reg  [7:0]  ml_confidence,
+    output reg         [7:0]  ml_margin,
     output reg         ml_valid
 );
 
@@ -309,6 +310,7 @@ module ml_inference_engine (
     // Stage 3: Argmax  →  class (3-bit) + confidence (8-bit)
     // ---------------------------------------------------------------
     reg signed [31:0] max_logit;
+    reg signed [31:0] second_max_logit;
     reg signed [31:0] min_logit;
     reg [2:0]         best_class;
     reg signed [31:0] gap;
@@ -319,21 +321,30 @@ module ml_inference_engine (
             ml_valid      <= 1'b0;
             ml_class      <= 3'd0;
             ml_confidence <= 8'd0;
+            ml_margin     <= 8'd0;
         end else begin
             ml_valid <= s2_valid;
             if (s2_valid) begin
-                max_logit  = s2_logit[0];
-                min_logit  = s2_logit[0];
-                best_class = 3'd0;
+                max_logit        = s2_logit[0];
+                second_max_logit = -32'sd2147483648; // INT32 min
+                min_logit        = s2_logit[0];
+                best_class       = 3'd0;
 
                 for (j3 = 1; j3 < 6; j3 = j3 + 1) begin
                     if (s2_logit[j3] > max_logit) begin
-                        max_logit  = s2_logit[j3];
-                        best_class = j3[2:0];
+                        second_max_logit = max_logit;
+                        max_logit        = s2_logit[j3];
+                        best_class       = j3[2:0];
+                    end else if (s2_logit[j3] > second_max_logit) begin
+                        second_max_logit = s2_logit[j3];
                     end
+
                     if (s2_logit[j3] < min_logit)
                         min_logit = s2_logit[j3];
                 end
+
+                if (second_max_logit == -32'sd2147483648)
+                    second_max_logit = min_logit;
 
                 ml_class <= best_class;
 
@@ -345,6 +356,15 @@ module ml_inference_engine (
                     ml_confidence <= 8'd0;
                 else
                     ml_confidence <= gap[15:8];
+
+                // Margin: max - second_max scaled to 0..255
+                gap = max_logit - second_max_logit;
+                if (gap >= 32'sd65280)
+                    ml_margin <= 8'd255;
+                else if (gap <= 32'sd0)
+                    ml_margin <= 8'd0;
+                else
+                    ml_margin <= gap[15:8];
             end
         end
     end
