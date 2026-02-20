@@ -7,7 +7,7 @@ project:
   description: "Real-time ASIC combining order book matching with dual-path anomaly detection: rule-based (1-cycle latency) AND a pipelined 16->4->6 MLP neural network (4-cycle latency) trained on synthetic market data. Detects flash crashes, volume surges, spoofing, and order imbalances."
   language:    "Verilog"
   clock_hz:    50000000
-  tiles:       "2x2"
+  tiles:       "4x4"
   top_module:  "tt_um_nanotrade"
 
   source_files:
