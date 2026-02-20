@@ -1,4 +1,4 @@
-﻿{
+{
     "DESIGN_NAME": "tt_um_nanotrade",
     "VERILOG_FILES": "dir::src/*.v",
     "CLOCK_PORT": "clk",
