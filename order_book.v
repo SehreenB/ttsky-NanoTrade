@@ -27,12 +27,17 @@
 
 `default_nettype none
 
+
+
 module order_book (
     input  wire       clk,
     input  wire       rst_n,
     input  wire [1:0] input_type,
+
+    /* verilator lint_off UNUSEDSIGNAL */
     input  wire [5:0] data_in,
-    input  wire [5:0] ext_data,
+
+    input  wire [5:0] ext_data, /* verilator lint_on UNUSEDSIGNAL */
     // ── ML Circuit Breaker Interface ────────────────────────────────
     input  wire [1:0] cb_mode,       // 00=normal 01=throttle 10=widen 11=pause
     input  wire [7:0] cb_param,      // confidence-derived parameter
@@ -50,7 +55,7 @@ module order_book (
     reg [7:0] bid [0:3];
     reg [7:0] ask [0:3];
 
-    wire [6:0] new_price = {ext_data[0], data_in[5:1]};
+    wire [6:0] new_price = {1'b0, ext_data[0], data_in[5:1]};
     wire       is_buy    = (input_type == 2'b10);
     wire       is_sell   = (input_type == 2'b11);
 
@@ -59,16 +64,17 @@ module order_book (
     // ----------------------------------------------------------------
     reg [6:0] best_bid; reg best_bid_valid; reg [1:0] best_bid_idx;
     reg [6:0] best_ask; reg best_ask_valid; reg [1:0] best_ask_idx;
-    integer i;
+    integer i3;
 
-    always @(*) begin
+    always @(*) begin : best_finder
+        reg [2:0] i;
         best_bid=7'h00; best_bid_valid=1'b0; best_bid_idx=2'd0;
         best_ask=7'h7F; best_ask_valid=1'b0; best_ask_idx=2'd0;
-        for(i=0;i<4;i=i+1) begin
+        for(i=3'd0;i<3'd4;i=i+3'd1) begin
             if(bid[i][7]&&(!best_bid_valid||bid[i][6:0]>best_bid)) begin
                 best_bid=bid[i][6:0]; best_bid_valid=1'b1; best_bid_idx=i[1:0]; end
         end
-        for(i=0;i<4;i=i+1) begin
+        for(i=3'd0;i<3'd4;i=i+3'd1) begin
             if(ask[i][7]&&(!best_ask_valid||ask[i][6:0]<best_ask)) begin
                 best_ask=ask[i][6:0]; best_ask_valid=1'b1; best_ask_idx=i[1:0]; end
         end
@@ -80,13 +86,18 @@ module order_book (
     reg [1:0] empty_bid_slot; reg has_empty_bid;
     reg [1:0] empty_ask_slot; reg has_empty_ask;
 
-    always @(*) begin
+    always @(*) begin : slot_finder
+        // Unrolled (was: for i2=3 downto 0) — avoids integer-in-comb-block Yosys issue
         empty_bid_slot=2'd0; has_empty_bid=1'b0;
         empty_ask_slot=2'd0; has_empty_ask=1'b0;
-        for(i=3;i>=0;i=i-1) begin
-            if(!bid[i][7]) begin empty_bid_slot=i[1:0]; has_empty_bid=1'b1; end
-            if(!ask[i][7]) begin empty_ask_slot=i[1:0]; has_empty_ask=1'b1; end
-        end
+        if(!bid[3][7]) begin empty_bid_slot=2'd3; has_empty_bid=1'b1; end
+        if(!ask[3][7]) begin empty_ask_slot=2'd3; has_empty_ask=1'b1; end
+        if(!bid[2][7]) begin empty_bid_slot=2'd2; has_empty_bid=1'b1; end
+        if(!ask[2][7]) begin empty_ask_slot=2'd2; has_empty_ask=1'b1; end
+        if(!bid[1][7]) begin empty_bid_slot=2'd1; has_empty_bid=1'b1; end
+        if(!ask[1][7]) begin empty_ask_slot=2'd1; has_empty_ask=1'b1; end
+        if(!bid[0][7]) begin empty_bid_slot=2'd0; has_empty_bid=1'b1; end
+        if(!ask[0][7]) begin empty_ask_slot=2'd0; has_empty_ask=1'b1; end
     end
 
     // ================================================================
@@ -95,8 +106,8 @@ module order_book (
 
     reg [1:0]  cb_mode_r;
     reg [8:0]  cb_countdown;      // 9-bit: up to 510 cycles
-    reg [7:0]  cb_param_r;
-    reg [3:0]  throttle_cnt;
+/* verilator lint_off UNUSEDSIGNAL */ reg [7:0]  cb_param_r; /* verilator lint_on UNUSEDSIGNAL */
+       reg [3:0]  throttle_cnt;
 
     wire [3:0] throttle_div   = cb_param_r[7:4];
     wire       throttle_allow = (throttle_cnt == 4'd0);
@@ -166,7 +177,7 @@ module order_book (
         if (!rst_n) begin
             match_valid <= 1'b0;
             match_price <= 8'd0;
-            for(i=0;i<4;i=i+1) begin bid[i]<=8'h00; ask[i]<=8'h00; end
+            for(i3=0;i3<4;i3=i3+1) begin bid[i3]<=8'h00; ask[i3]<=8'h00; end
         end else begin
             match_valid <= 1'b0;
 

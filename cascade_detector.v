@@ -19,6 +19,8 @@
 
 `default_nettype none
 
+
+
 module cascade_detector #(
     parameter integer CASCADE_WINDOW = 64,
     parameter integer CASCADE_HOLD   = 32
@@ -85,7 +87,6 @@ module cascade_detector #(
     // Combinational cascade detection based on hist after shift
     // (We compute using "next" values)
     // ------------------------------------------------------------
-    wire [2:0] h0_next = event_any ? event_code : hist[0];
     wire [2:0] h1_next = event_any ? hist[0]    : hist[1];
     wire [2:0] h2_next = event_any ? hist[1]    : hist[2];
 
@@ -114,7 +115,6 @@ module cascade_detector #(
     // ------------------------------------------------------------
     // Sequential logic
     // ------------------------------------------------------------
-    integer i;
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             hist[0] <= 3'd0;
