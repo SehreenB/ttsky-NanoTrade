@@ -1,0 +1,6 @@
+<testsuites name="results">
+  <testsuite name="all" package="all">
+    <property name="random_seed" value="1771656690" />
+    <testcase name="realtime_ws_demo" classname="test" file="/Users/betulcetintas/Documents/GitHub/ttsky-NanoTrade/test/test.py" lineno="104" time="85.20108485221863" sim_time_ns="56691400.0" ratio_time="665383.5464458145" />
+  </testsuite>
+</testsuites>
