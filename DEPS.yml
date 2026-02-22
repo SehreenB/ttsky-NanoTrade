@@ -1,0 +1,80 @@
+# DEPS.yml for NanoTrade Project
+# ============================================
+
+# Main NanoTrade simulation
+sim_nanotrade:
+  deps:
+    - order_book.v
+    - circuit_breaker.v
+    - anomaly_detector.v
+    - feature_extractor.v
+    - ml_inference_engine.v
+    - cascade_detector.v
+    - tt_um_nanotrade.v
+    - tb_nanotrade.v
+  top: tb_nanotrade
+
+# Cascade detector simulation
+sim_cascade:
+  deps:
+    - order_book.v
+    - circuit_breaker.v
+    - anomaly_detector.v
+    - feature_extractor.v
+    - ml_inference_engine.v
+    - cascade_detector.v
+    - tt_um_nanotrade.v
+    - tb_cascade.v
+  top: tb_cascade
+
+# Circuit breaker simulation
+sim_cb:
+  deps:
+    - order_book.v
+    - circuit_breaker.v
+    - anomaly_detector.v
+    - feature_extractor.v
+    - ml_inference_engine.v
+    - cascade_detector.v
+    - tt_um_nanotrade.v
+    - tb_cb.v
+  top: tb_cb
+
+# COVID crash scenario simulation
+sim_covid:
+  deps:
+    - order_book.v
+    - circuit_breaker.v
+    - anomaly_detector.v
+    - feature_extractor.v
+    - ml_inference_engine.v
+    - cascade_detector.v
+    - tt_um_nanotrade.v
+    - tb_covid_crash.v
+  top: tb_covid_crash_enhanced
+
+# 2001 crash scenario simulation
+sim_2001:
+  deps:
+    - order_book.v
+    - circuit_breaker.v
+    - anomaly_detector.v
+    - feature_extractor.v
+    - ml_inference_engine.v
+    - cascade_detector.v
+    - tt_um_nanotrade.v
+    - tb_2001_crash.v
+  top: tb_2001_crash
+
+# Quiet 2019 scenario simulation
+sim_quiet:
+  deps:
+    - order_book.v
+    - circuit_breaker.v
+    - anomaly_detector.v
+    - feature_extractor.v
+    - ml_inference_engine.v
+    - cascade_detector.v
+    - tt_um_nanotrade.v
+    - tb_quiet_2019.v
+  top: tb_quiet_2019
