@@ -1,0 +1,23 @@
+{
+  "stdout_truncated": false,
+  "stdout": "INFO: [EDA] eda: version 0.3.10\nINFO: [EDA] main: eda sim --no-color --tool verilator --seed=1 --verilate-args=-Wno-fatal --waves sim_covid; (run from /app/eda.work/4b7d0cde-c782-4729-8404-56a093d00601.edacmd)\nINFO: [EDA] eda_config: --config-yml=eda_config_defaults.yml observed\nINFO: [EDA] eda_config: using config: /app/venv/lib/python3.12/site-packages/opencos/eda_config_defaults.yml\nINFO: [EDA] *** OpenCOS EDA ***\nINFO: [EDA] Detected verilator (/usr/local/bin/verilator)\nINFO: [EDA] sim: top-most target name: sim_covid\nINFO: [EDA] exec: /usr/local/bin/verilator --binary -Wno-CASEINCOMPLETE -Wno-REALCVT -Wno-SELRANGE -Wno-TIMESCALEMOD -Wno-UNSIGNED -Wno-WIDTH -Wno-fatal --timing --assert --autoflush -sv -CFLAGS -O1 -j 7 --trace-structs --trace-params --trace-fst -top tb_covid_crash -o sim.exe +define+SIMULATION /app/eda.work/4b7d0cde-c782-4729-8404-56a093d00601.edacmd/order_book.v /app/eda.work/4b7d0cde-c782-4729-8404-56a093d00601.edacmd/circuit_breaker.v /app/eda.work/4b7d0cde-c782-4729-8404-56a093d00601.edacmd/anomaly_detector.v /app/eda.work/4b7d0cde-c782-4729-8404-56a093d00601.edacmd/feature_extractor.v /app/eda.work/4b7d0cde-c782-4729-8404-56a093d00601.edacmd/ml_inference_engine.v /app/eda.work/4b7d0cde-c782-4729-8404-56a093d00601.edacmd/cascade_detector.v /app/eda.work/4b7d0cde-c782-4729-8404-56a093d00601.edacmd/tt_um_nanotrade.v /app/eda.work/4b7d0cde-c782-4729-8404-56a093d00601.edacmd/tb_covid_crash.v (in eda.work/sim_covid.sim, tee_fpath='compile.log')\nINFO: [EDA] PID 2604 for /usr/local/bin/verilator\n%Error: Specified --top-module 'tb_covid_crash' was not found in design.\n        ... See the manual at https://verilator.org/verilator_doc.html?v=5.038 for more assistance.\n%Error: Exiting due to 1 error(s)\nINFO: [EDA] subprocess_run_background: wrote: /app/eda.work/4b7d0cde-c782-4729-8404-56a093d00601.edacmd/eda.work/sim_covid.sim/compile.log\nINFO: [EDA] exec: returned with error (return code: 1)\nINFO: [EDA] Tool - verilator, total counts: 0 tool warnings, 2 tool errors\nERROR: [EDA] sim - verilator - tb_covid_crash: exec returned with error code: 1\nINFO: [EDA] Wrote artifacts JSON: eda.work/sim_covid.sim/artifacts.json\nINFO: [EDA] Exiting with 0 warnings, 1 errors\nINFO: [EDA] Closing logfile: eda.work/eda.log\n",
+  "stdout_size": 2258,
+  "stdout_total_size": 2258,
+  "message": "Simulation failed with return code 255",
+  "warnings": 0,
+  "errors": 0,
+  "stderr": "",
+  "return_code": 255,
+  "start_time": 1771741187.128075,
+  "stop_time": 1771741187.430944,
+  "waves_returned": false,
+  "wave_file": null,
+  "wave_file_size": null,
+  "verilator_version": null,
+  "system_info": null,
+  "work_dir_files": null,
+  "frogger_status_reason": "Simulation failed with return code 255",
+  "fst_s3_key": null,
+  "fst_s3_bucket": null,
+  "error": "Simulation failed with return code 255"
+}
