@@ -1,0 +1,8 @@
+// NanoTrade Golden Reference
+// Ticker: ZM  Date: 2020-03-16  Source: synthetic
+// Expected alerts: VOLUME_SURGE, PRICE_SPIKE
+// Total bars: 390
+//
+// Format: EXPECTED_ALERT_TYPE  (chip should fire at least once)
+EXPECT VOLUME_SURGE
+EXPECT PRICE_SPIKE

@@ -1,0 +1,14 @@
+NanoTrade Stimulus Info
+=======================
+Ticker  : ACN
+Date    : 2010-05-06
+Source  : synthetic
+Bars    : 390
+Cycles  : 6272
+
+Price range: $0.01 — $41.73
+Volume range: 68,719 — 1,022,937
+
+Expected alerts:
+  ✅ FLASH_CRASH
+  ✅ PRICE_SPIKE

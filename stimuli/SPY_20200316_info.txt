@@ -1,0 +1,15 @@
+NanoTrade Stimulus Info
+=======================
+Ticker  : SPY
+Date    : 2020-03-16
+Source  : synthetic
+Bars    : 390
+Cycles  : 6272
+
+Price range: $236.81 — $290.00
+Volume range: 5,043,783 — 19,613,561
+
+Expected alerts:
+  ✅ FLASH_CRASH
+  ✅ VOLATILITY
+  ✅ VOLUME_SURGE

@@ -1,0 +1,13 @@
+NanoTrade Stimulus Info
+=======================
+Ticker  : KO
+Date    : 2019-06-04
+Source  : synthetic
+Bars    : 390
+Cycles  : 6272
+
+Price range: $53.95 — $55.83
+Volume range: 8,527,599 — 11,487,566
+
+Expected alerts:
+  ✅ NONE (this is a quiet baseline test)

@@ -1,0 +1,8 @@
+// NanoTrade Golden Reference
+// Ticker: PG  Date: 2010-05-06  Source: synthetic
+// Expected alerts: FLASH_CRASH, PRICE_SPIKE
+// Total bars: 390
+//
+// Format: EXPECTED_ALERT_TYPE  (chip should fire at least once)
+EXPECT FLASH_CRASH
+EXPECT PRICE_SPIKE

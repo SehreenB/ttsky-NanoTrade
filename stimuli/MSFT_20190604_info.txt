@@ -1,0 +1,13 @@
+NanoTrade Stimulus Info
+=======================
+Ticker  : MSFT
+Date    : 2019-06-04
+Source  : synthetic
+Bars    : 390
+Cycles  : 6272
+
+Price range: $129.33 — $130.99
+Volume range: 17,194,798 — 22,638,229
+
+Expected alerts:
+  ✅ NONE (this is a quiet baseline test)

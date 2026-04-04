@@ -1,0 +1,14 @@
+NanoTrade Stimulus Info
+=======================
+Ticker  : ZM
+Date    : 2020-03-16
+Source  : synthetic
+Bars    : 390
+Cycles  : 6272
+
+Price range: $105.28 — $165.03
+Volume range: 1,101,673 — 14,752,623
+
+Expected alerts:
+  ✅ VOLUME_SURGE
+  ✅ PRICE_SPIKE
